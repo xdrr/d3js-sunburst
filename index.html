@@ -1,115 +1,36 @@
+<!--
+    Modification of original project here: https://bl.ocks.org/kerryrodden/7090426
+    Modified by: xdrr
+    Original author: Kerry Rodden
+-->
 <!DOCTYPE html>
-<meta charset="utf-8">
-<style>
-
-path {
-  stroke: #fff;
-}
-
-</style>
-<body>
-<script src="https://d3js.org/d3.v3.min.js"></script>
-<script>
-
-var width = 1920,
-    height = 1080,
-    radius = (Math.min(width, height) / 2) - 10;
-
-var formatNumber = d3.format(",d");
-
-var x = d3.scale.linear()
-    .range([0, 2 * Math.PI]);
-
-var y = d3.scale.sqrt()
-    .range([0, radius]);
-
-var color = d3.scale.category20c();
-
-var partition = d3.layout.partition()
-    .value(function(d) { return 20; });
-
-var arc = d3.svg.arc()
-    .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x))); })
-    .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))); })
-    .innerRadius(function(d) { return Math.max(0, y(d.y)); })
-    .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
-
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height)
-  .append("g")
-    .attr("transform", "translate(" + width / 2 + "," + (height / 2) + ")");
-
-// Hides the text when too small
-var setTextOpacity = function() {
-    var box = this.getBBox();
-    var arc = svg.selectAll(this.href.baseVal)[0][0].getBBox();
-    if (arc.width <= box.width + 20) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-// Controls pointer events when the text isn't ment
-// to be interactive (i.e. seen).
-var setTextIndex = function() {
-    var box = this.getBBox();
-    var arc = svg.selectAll(this.href.baseVal)[0][0].getBBox();
-    if (arc.width <= box.width + 20) {
-        return "none";
-    } else {
-        return "auto";
-    }
-}
-
-d3.json("data.json", function(error, root) {
-  if (error) throw error;
-
-  svg.selectAll(".arcPath")
-      .data(partition.nodes(root))
-    .enter().append("path")
-    .attr("class", "arcPath")
-    .attr("id", function(d, i) { return "arcPath_" + i; })
-      .attr("d", arc)
-      .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
-      .on("click", click);
-
-  svg.selectAll(".arcText")
-      .data(partition.nodes(root))
-      .enter().append("text")
-        .attr("class", "arcText")
-        .attr("x", 5)
-        .attr("dy", 18)
-      .append("textPath")
-        .attr("xlink:href", function(d,i) { return "#arcPath_" + i; })
-        .text(function(d) { return d.name; })
-        .style("fill", "white")
-        .style("font-family", "sans-serif")
-        .style("opacity", setTextOpacity)
-        .style("pointer-events", setTextIndex);
-});
-
-function click(d) {
-  svg.transition()
-      .duration(750)
-      .tween("scale", function() {
-        var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
-            yd = d3.interpolate(y.domain(), [d.y, 1]),
-            yr = d3.interpolate(y.range(), [d.y ? 20 : 0, radius]);
-        return function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); };
-      })
-    .selectAll("path")
-      .attrTween("d", function(d) { return function() { return arc(d); }; });
-
-    // Update text opacity, after the transition
-    setTimeout(function() {
-          svg.selectAll(".arcText textPath")
-            .style("opacity", setTextOpacity)
-            .style("pointer-events", setTextIndex);
-      }, 700);
-}
-
-d3.select(self.frameElement).style("height", height + "px");
-
-</script>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Information Management</title>
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <link rel="stylesheet" type="text/css"
+      href="https://fonts.googleapis.com/css?family=Open+Sans:400,600">
+    <link rel="stylesheet" type="text/css" href="sequences.css"/>
+  </head>
+  <body>
+    <div id="main">
+      <div id="sequence"></div>
+      <div id="chart">
+        <div id="explanation" style="visibility: hidden;">
+          <span id="percentage"></span><br/>
+          of this area makes up information at ORG.
+        </div>
+      </div>
+    </div>
+    <div id="sidebar">
+      <input type="checkbox" id="togglelegend"> Legend<br/>
+      <div id="legend" style="visibility: hidden;"></div>
+    </div>
+    <script type="text/javascript" src="sequences.js"></script>
+    <script type="text/javascript">
+      // Hack to make this example display correctly in an iframe on bl.ocks.org
+      d3.select(self.frameElement).style("height", "700px");
+  </script> 
+  </body>
+</html>
